@@ -1,0 +1,303 @@
+<!-- Config -->
+<script type="text/javascript">
+    RED.nodes.registerType('tesla-config',{
+        category: 'config',
+        defaults: {
+            name: {value: ""}
+        },
+        credentials: {
+            email: {type:"text"},
+            password: { type: "text"},
+            token: { type: "text" }
+        },
+        exportable: false,
+        label: function() {
+            return this.name || "Tesla Config";
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="tesla-config">
+    <div class="form-row">
+        <label for="node-config-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-email"></i> Email</label>
+        <input type="text" id="node-config-input-email">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-password"></i> Password</label>
+        <input type="text" id="node-config-input-password">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-token">Token</label>
+        <input type="text" id="node-config-input-token">
+    </div>
+</script>
+
+<!-- Vehicle -->
+<script type="text/javascript">
+    RED.nodes.registerType('tesla-vehicle',{
+        category: 'config',
+        defaults: {
+            vehicle: {value: ""}
+        },
+        exportable: false,
+        label: function() {
+            return this.vehicle || "Unknown Vehicle";
+        },
+        oneditprepare: function() {
+            const node = this;
+            $.getJSON('tesla-control/vehicles', {'id': this.config}, function(data) {
+                for (i = 0; i < data.length; i++) {
+                    const vehicle = data[i];
+                    $("<option value='" + vehicle.id_s + "'> " + vehicle.display_name + "</option>").appendTo("#node-config-input-vehicle");
+                }  
+                if (!node.vehicle) {
+                    node.vehicle = 'Unknown Vehicle';
+                }else {
+                    $("#node-config-input-vehicle").val(node.vehicle);
+                    $('#node-config-input-vehicle').trigger('change');
+                }
+            });
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="tesla-vehicle">
+    <div class="form-row">
+        <label for="node-config-input-vehicle"> Vehicle</label>
+        <select id="node-config-input-vehicle"></select>
+    </div>
+</script>
+
+<!-- Climate -->
+<script type="text/javascript">
+    RED.nodes.registerType('tesla-climate',{
+        category: 'function',
+        color: '#FFAAAA',
+        labelStyle: "white",
+        defaults: {
+            name: {value:""},
+            config: {type:"tesla-config", require:true },
+            vehicle: {type:"tesla-vehicle", require: true},
+            action: {value: "", require: true},
+            temperature: {value: ""}
+        },
+        inputs:1,
+        outputs:2,
+        icon: "bridge.png",
+        label: function() {
+            return this.name || "tesla-climate";
+        },
+        oneditprepare: function() {
+            const node = this;
+            if (!node.action) {
+                node.action = 'start';
+            }else {
+                $("#node-input-action").val(node.action);
+                $('#node-input-action').trigger('change');
+            }
+
+            $("#node-temperature-f").html($('#node-input-temperature').val() * 1.8 + 32);
+            $("#node-input-temperature").keyup(function(e) {
+                $("#node-temperature-f").html(e.target.value * 1.8 + 32);
+            });
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="tesla-climate">
+    <div class="form-row">
+        <label for="node-input-name"> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-config"> Config</label>
+        <input type="text" id="node-input-config" placeholder="">
+    </div>
+    <div class="form-row">
+        <label for="node-input-vehicle"> Vehicle</label>
+        <input type="text" id="node-input-vehicle" placeholder="">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-action"> Action</label>
+        <select id="node-input-action">
+            <option value="start"> Start </option>
+            <option value="stop"> Stop </option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-temperature"> Temperature (Celsius)</label>
+        <input type="text" id="node-input-temperature" placeholder="0">
+        <div id="node-temperature-f">0</div>
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="tesla-climate">
+    <p>Turns on the climate control</p>
+    <ul>
+        <li>Start - Starts the climate control. If no temperature is passed in the car uses the previous temperature</li>
+        <li>Stop - Stops the climate control.</li>
+    </ul>
+    <p>Temperature can be passed in via msg.temperature</p>
+</script>
+
+<!-- Climate State-->
+<script type="text/javascript">
+    RED.nodes.registerType('tesla-climate-state',{
+        category: 'function',
+        color: '#FFAAAA',
+        labelStyle: "white",
+        defaults: {
+            name: {value:""},
+            config: {type:"tesla-config", require:true },
+            vehicle: {type:"tesla-vehicle", require: true}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "bridge.png",
+        label: function() {
+            return this.name || "tesla-climate-state";
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="tesla-climate-state">
+    <div class="form-row">
+        <label for="node-input-name"> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-config"> Config</label>
+        <input type="text" id="node-input-config" placeholder="">
+    </div>
+    <div class="form-row">
+        <label for="node-input-vehicle"> Vehicle</label>
+        <input type="text" id="node-input-vehicle" placeholder="">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="tesla-climate-state">
+    <p>Returns the current state of the climate control</p>
+</script>
+
+<!-- Vehicle State-->
+<script type="text/javascript">
+    RED.nodes.registerType('tesla-vehicle-state',{
+        category: 'function',
+        color: '#FFAAAA',
+        labelStyle: "white",
+        defaults: {
+            name: {value:""},
+            config: {type:"tesla-config", require:true },
+            vehicle: {type:"tesla-vehicle", require: true}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "bridge.png",
+        label: function() {
+            return this.name || "tesla-vehicle-state";
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="tesla-vehicle-state">
+    <div class="form-row">
+        <label for="node-input-name"> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-config"> Config</label>
+        <input type="text" id="node-input-config" placeholder="">
+    </div>
+    <div class="form-row">
+        <label for="node-input-vehicle"> Vehicle</label>
+        <input type="text" id="node-input-vehicle" placeholder="">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="tesla-climate-state">
+    <p>Returns the current state of the selected vehicle</p>
+</script>
+
+
+<!-- Drive State-->
+<script type="text/javascript">
+    RED.nodes.registerType('tesla-drive-state',{
+        category: 'function',
+        color: '#FFAAAA',
+        labelStyle: "white",
+        defaults: {
+            name: {value:""},
+            config: {type:"tesla-config", require:true },
+            vehicle: {type:"tesla-vehicle", require: true}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "bridge.png",
+        label: function() {
+            return this.name || "tesla-drive-state";
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="tesla-drive-state">
+    <div class="form-row">
+        <label for="node-input-name"> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-config"> Config</label>
+        <input type="text" id="node-input-config" placeholder="">
+    </div>
+    <div class="form-row">
+        <label for="node-input-vehicle"> Vehicle</label>
+        <input type="text" id="node-input-vehicle" placeholder="">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="tesla-climate-state">
+    <p>Returns the current drive state of the selected vehicle</p>
+</script>
+
+<!-- Vehicle Data -->
+<script type="text/javascript">
+    RED.nodes.registerType('tesla-vehicle-data',{
+        category: 'function',
+        color: '#FFAAAA',
+        labelStyle: "white",
+        defaults: {
+            name: {value:""},
+            config: {type:"tesla-config", require:true },
+            vehicle: {type:"tesla-vehicle", require: true}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "bridge.png",
+        label: function() {
+            return this.name || "tesla-vehicle-data";
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="tesla-vehicle-data">
+    <div class="form-row">
+        <label for="node-input-name"> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-config"> Config</label>
+        <input type="text" id="node-input-config" placeholder="">
+    </div>
+    <div class="form-row">
+        <label for="node-input-vehicle"> Vehicle</label>
+        <input type="text" id="node-input-vehicle" placeholder="">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="tesla-vehicle-data">
+    <p>Returns all vehicle data</p>
+</script>
