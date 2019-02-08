@@ -8,7 +8,7 @@ module.exports = function(RED) {
     function TeslaConfigNode(n) {
         RED.nodes.createNode(this,n);
 
-        const node = this;
+        var node = this;
         const credentials = this.credentials;
 
         this.populateVehicleList = function() {
@@ -33,7 +33,7 @@ module.exports = function(RED) {
                     } else {
                         var token = result.authToken;
                         if (token) {
-                            const token_cred = credentials = {
+                            var token_cred = {
                                 'token': token,
                                 'email': credentials.email,
                                 'password': credentials.password
@@ -107,7 +107,7 @@ module.exports = function(RED) {
     function TeslaClimate(n) {
         RED.nodes.createNode(this, n);
 
-        const node = this;
+        var node = this;
         const configNode = RED.nodes.getNode(n.config);
         const vehicleNode = RED.nodes.getNode(n.vehicle);
         const credentials = configNode.credentials;
@@ -161,7 +161,7 @@ module.exports = function(RED) {
     function TeslaClimateState(n) {
         RED.nodes.createNode(this, n);
 
-        const node = this;
+        var node = this;
         const configNode = RED.nodes.getNode(n.config);
         const vehicleNode = RED.nodes.getNode(n.vehicle);
         const credentials = configNode.credentials;
@@ -202,7 +202,7 @@ module.exports = function(RED) {
     function TeslaVehicleState(n) {
         RED.nodes.createNode(this, n);
 
-        const node = this;
+        var node = this;
         const configNode = RED.nodes.getNode(n.config);
         const vehicleNode = RED.nodes.getNode(n.vehicle);
         const credentials = configNode.credentials;
